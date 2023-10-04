@@ -1,35 +1,75 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import "./App.css";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  QueryClientProvider,
+  QueryClient,
+} from "react-query";
+import { ReactQueryDevtools } from "react-query/devtools";
+import { getTodos, postTodo } from "./my-api";
+
+// Create a client
+const queryClient = new QueryClient();
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    // Provide the client to your App
+    <QueryClientProvider client={queryClient}>
+      <Todos />
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
+  );
 }
 
-export default App
+function Todos() {
+  // Access the client
+  const queryClient = useQueryClient();
+
+  // Queries
+  const { data, isFetched, isFetching, isError } = useQuery("todos", getTodos);
+
+  // Mutations
+  const mutation = useMutation(postTodo, {
+    onSuccess: () => {
+      // Invalidate and refetch
+      queryClient.invalidateQueries("todos");
+    },
+  });
+
+  if (isError) {
+    return <div>Oh no!</div>;
+  }
+
+  if (isFetching) {
+    return <div>Still fetching</div>;
+  }
+
+  if (isFetched) {
+    return (
+      <div>
+        <ul>
+          {data &&
+            data.map((todo) => (
+              <li key={todo.id}>
+                {todo.id} - {todo.title}
+              </li>
+            ))}
+        </ul>
+
+        <button
+          onClick={() => {
+            mutation.mutate({
+              id: Date.now(),
+              title: "Do Laundry",
+            });
+          }}
+        >
+          Add Todo
+        </button>
+      </div>
+    );
+  }
+}
+
+export default App;
