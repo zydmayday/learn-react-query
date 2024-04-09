@@ -1,17 +1,18 @@
+import axios, { AxiosResponse } from "axios";
+
 type Todo = {
   id: number;
   title: string;
 };
 
-const todos: Todo[] = [{ id: 1, title: "init" }];
-
-export const getTodos = async () => {
-  console.log('getTodos', todos);
-  throw new Error("sorry");
-  return todos;
+export const getTodos = async (): Promise<Todo[]> => {
+  const res: AxiosResponse<Todo[]> = await axios.get(
+    "http://localhost:3000/todos"
+  );
+  return res.data;
 };
 
-export const postTodo = async (todo: Todo) => {
-  todos.push(todo);
-  return todos;
+export const postTodo = async (todo: Todo): Promise<Todo[]> => {
+  await axios.post("http://localhost:3000/todos", todo);
+  return await getTodos();
 };

@@ -5,8 +5,8 @@ import {
   useQueryClient,
   QueryClientProvider,
   QueryClient,
-} from "react-query";
-import { ReactQueryDevtools } from "react-query/devtools";
+} from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { getTodos, postTodo } from "./my-api";
 
 // Create a client
@@ -27,13 +27,18 @@ function Todos() {
   const queryClient = useQueryClient();
 
   // Queries
-  const { data, isFetched, isFetching, isError } = useQuery("todos", getTodos);
+  const { data, isFetched, isFetching, isError } = useQuery({
+    queryKey: ["todos"],
+    queryFn: getTodos,
+  });
 
   // Mutations
-  const mutation = useMutation(postTodo, {
+  const mutation = useMutation({
+    mutationFn: postTodo,
     onSuccess: () => {
+      console.log("added new todo");
       // Invalidate and refetch
-      queryClient.invalidateQueries("todos");
+      queryClient.invalidateQueries({ queryKey: ["todos"] });
     },
   });
 
